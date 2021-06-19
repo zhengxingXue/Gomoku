@@ -2,5 +2,5 @@ from setuptools import setup
 
 setup(name='Gomoku',
       version='0.0.0',
-      install_requires=['gym', 'numpy', 'matplotlib']
+      install_requires=['gym', 'numpy', 'matplotlib', 'pytest']
 )
