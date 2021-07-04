@@ -12,3 +12,13 @@ def test_gym_make():
 def test_GomokuEnv_init():
     env = GomokuEnv()
     assert env.board_size == 15
+
+
+def test_env_step():
+    env = GomokuEnv()
+    obs, reward, done, info = env.step([7, 7])
+    assert obs.shape == (15, 15)
+    assert reward == 1
+    assert done is False
+    assert info == {}
+    # env.render()
