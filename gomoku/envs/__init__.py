@@ -1,1 +1,1 @@
-from gomoku.envs.gomoku_env import GomokuEnv, Stone
+from gomoku.envs.gomoku_env import GomokuEnv
