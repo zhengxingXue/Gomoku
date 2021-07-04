@@ -41,12 +41,16 @@ class Stone(object):
                 pattern_any = pattern
                 break
         if pattern_any == 0:
-            # TODO: Test
             pattern = Pattern(self)
         else:
             pattern = pattern_any
         pattern.orientation = orientation
         return pattern
+
+    # def __eq__(self, other):
+    #     if isinstance(other, Stone):
+    #         return self.position == other.position and self.color == other.color and self.step == other.step
+    #     return False
 
     @property
     def position(self):
@@ -59,14 +63,6 @@ class Stone(object):
     @property
     def step(self):
         return self._step
-
-
-def _update_pattern_along_orientation(existing_stone, orientation, stone, patterns):
-    pattern = existing_stone.get_pattern(orientation)
-    if pattern not in patterns:
-        patterns.append(pattern)
-    pattern.stones.append(stone)
-    stone.patterns.append(pattern)
 
 
 class Orientation(enum.Enum):
@@ -106,6 +102,14 @@ class Pattern(object):
     @property
     def number_of_stones(self):
         return len(self.stones)
+
+
+def _update_pattern_along_orientation(existing_stone, orientation, stone, patterns):
+    pattern = existing_stone.get_pattern(orientation)
+    if pattern not in patterns:
+        patterns.append(pattern)
+    pattern.stones.append(stone)
+    stone.patterns.append(pattern)
 
 
 class BoardPattern(object):
@@ -166,7 +170,7 @@ class BoardPattern(object):
         return found
 
     def _position_exist(self, row, col):
-        return 0 < row < self._board.board_size and 0 < col < self._board.board_size
+        return 0 <= row < self._board.board_size and 0 <= col < self._board.board_size
 
     def _check_dr_dc(self, color, row, col, dr, dc):
         row += dr
@@ -194,7 +198,7 @@ class BoardPattern(object):
 
     @property
     def five_stones_found(self):
-        if len(self._white_stone_patterns) == 0 :
+        if len(self._white_stone_patterns) == 0:
             return False
         else:
             if self._black_stone_patterns[0].number_of_stones >= 5 \

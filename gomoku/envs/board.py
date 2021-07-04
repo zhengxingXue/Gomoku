@@ -22,8 +22,9 @@ class Board(object):
     def step(self, action):
         """
         :param action: [row, column]
-        :return: Boolean indicate if the game is done
+        :return: (have_five, is_full)
         """
+        # TODO: how to step if the board is full
         position = action
         self._current_step += 1
         current_stone = Stone(position, self._current_stone_color, self._current_step)
