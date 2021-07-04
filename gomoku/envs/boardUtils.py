@@ -30,7 +30,7 @@ class Stone(object):
     def draw_step_number(self):
         x, y = self.position
         color = (1, 1, 1) if self._color == StoneColor.black else (0, 0, 0)
-        plt.text(x, y, str(self._step), size=16, color=color, ha="center", va="center", zorder=20)
+        plt.text(x, y, str(self._step), size=15, color=color, ha="center", va="center", zorder=20)
 
     def get_pattern(self, orientation):
         pattern_any = 0

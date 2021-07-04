@@ -4,7 +4,7 @@ from gomoku.envs.board import Board
 from gomoku.envs.boardUtils import Orientation, StoneColor
 
 
-RENDER = True
+RENDER = False
 
 
 def test_Board_init():
@@ -15,8 +15,9 @@ def test_Board_init():
     assert len(b.board_patterns.black_stone_patterns) == 0
     assert len(b.board_patterns.white_stone_patterns) == 0
     assert b.board_patterns.five_stones_found is False
-    done = b.step([7, 7])
-    assert done is False
+    have_five, is_full = b.step([7, 7])
+    assert have_five is False
+    assert is_full is False
 
 
 def boardPattern_any_helper(board, position, stone_color, step, b_l, w_l, pattern):
@@ -55,4 +56,4 @@ def test_Board_render():
     b.step([7, 7])
     b.step([8, 7])
     b.step([7, 8])
-    b.render()
+    if RENDER: b.render()

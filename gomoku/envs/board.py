@@ -15,7 +15,7 @@ class Board(object):
         self._current_stone_color = StoneColor.black
         self._current_step = 0
         self._board_state = np.zeros((self._board_size, self._board_size), dtype=int)
-        self._board_stone = [[0] * 15 for _ in range(15)]
+        self._board_stone = [[0] * self._board_size for _ in range(self._board_size)]
         self._stone_array = []
         self._board_patterns = BoardPattern(self)
 
@@ -35,7 +35,7 @@ class Board(object):
         self._board_patterns.add_stone(current_stone)
         self._current_stone_color = self._current_stone_color.next()
 
-        return self._board_patterns.five_stones_found or self._current_step >= self._board_size ** 2
+        return self._board_patterns.five_stones_found, self._current_step >= self._board_size ** 2
 
     def render(self, mode='human'):
         """
