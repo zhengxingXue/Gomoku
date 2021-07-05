@@ -12,6 +12,7 @@ from pygame_widgets import Button
 from gomoku.envs.board import Board
 from gomoku.envs.boardUtils import StoneColor
 from gomoku.envs.gomoku_env import GomokuEnv
+from gomoku.envs.opponent import EasyAgent
 
 # Define some colors
 BLACK = (0, 0, 0)
@@ -38,11 +39,11 @@ def draw_circle_alpha(surface, color, center, radius):
 
 
 class GomokuGUI(object):
-    USE_ENV = False
+    USE_ENV = True
 
     def __init__(self):
         if self.USE_ENV:
-            self._env = GomokuEnv()
+            self._env = GomokuEnv(opponent_class=EasyAgent)
             self._board = self._env.board
         else:
             self._board = Board()
@@ -70,14 +71,18 @@ class GomokuGUI(object):
 
     def _set_up_reset_button(self):
         width, height = 60, 30
-        x = self._screen.get_width() // 2 - width // 2
-        y = self._screen.get_width() + 20
+        x = padding + board_size - width
+        y = board_size + padding + \
+            (self._screen.get_height() - board_size - padding) // 2 - height // 2
 
         def onClick():
             if self.USE_ENV:
                 self._env.reset()
+                self._done = False
             else:
                 self._board.reset()
+                self._have_five = False
+                self._is_full = False
 
         reset_button = Button(
             self._screen, x, y, width, height, text='Reset',
@@ -113,7 +118,7 @@ class GomokuGUI(object):
 
         elif event.type == MOUSEBUTTONUP:
             self._update_current_stone_pos()
-            if self._current_stone_pos is not None:
+            if self._current_stone_pos is not None and not self.board_is_done:
                 row, col = self.current_stone_coordinate_on_grid
                 col = self._col_converter(col)
                 if self._board.board_state[row][col] == 0:
@@ -126,6 +131,7 @@ class GomokuGUI(object):
         self.render_board_background()
         self.render_placed_stones()
         self.render_current_stone()
+        self.render_current_stone_info()
 
     def on_execute(self):
         while self._running:
@@ -164,7 +170,7 @@ class GomokuGUI(object):
             pygame.draw.circle(self._screen, BLACK, center, stone_radius, 1)
 
     def render_current_stone(self):
-        if self._current_stone_pos is not None:
+        if self._current_stone_pos is not None and not self.board_is_done:
             row, col = self.current_stone_coordinate_on_grid
             col_in_board = self._col_converter(col)
             if self._board.board_state[row][col_in_board] == 0:
@@ -174,6 +180,21 @@ class GomokuGUI(object):
                 color = (0, 0, 0, 63) if self._board.current_stone_color == StoneColor.black \
                     else (255, 255, 255, 127)
                 draw_circle_alpha(self._screen, color, (helper(row), helper(col)), stone_radius)
+
+    def render_current_stone_info(self):
+        color = BLACK if self._board.current_stone_color == StoneColor.black else WHITE
+        x = padding + stone_radius
+        y = board_size + padding + \
+            (self._screen.get_height() - board_size - padding) // 2
+        pygame.draw.circle(self._screen, color, (x, y), stone_radius, 0)
+        pygame.draw.circle(self._screen, BLACK, (x, y), stone_radius, 1)
+        info = "Win!" if self.board_is_done else "Turn"
+        font = pygame.font.Font(pygame.font.get_default_font(), 18)
+        text = font.render(info, True, BLACK)
+        textRect = text.get_rect()
+        textRect.centerx = x + 39
+        textRect.centery = y
+        self._screen.blit(text, textRect)
 
     @property
     def current_stone_coordinate_on_grid(self):
@@ -185,6 +206,13 @@ class GomokuGUI(object):
         def helper(a): return (a - padding + grid_size // 2) // (grid_size + margin)
 
         return helper(x), helper(y)
+
+    @property
+    def board_is_done(self):
+        if self.USE_ENV:
+            return self._done
+        else:
+            return self._have_five or self._is_full
 
 
 if __name__ == "__main__":
