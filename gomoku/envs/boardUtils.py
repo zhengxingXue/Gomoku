@@ -19,6 +19,13 @@ class Stone(object):
         self._step = step
         self.patterns = []
 
+    def __repr__(self):
+        rep = "Stone "
+        rep += str(self._step) + " "
+        rep += "b " if self._color == StoneColor.black else "w "
+        rep += "[" + str(self._position[0]) + ", " + str(self._position[1]) + "] "
+        return rep
+
     def get_mpatches(self):
         x, y = self.position
         facecolor = (0, 0, 0) if self._color == StoneColor.black else (1, 1, 1)
@@ -51,6 +58,12 @@ class Stone(object):
     #     if isinstance(other, Stone):
     #         return self.position == other.position and self.color == other.color and self.step == other.step
     #     return False
+
+    def __lt__(self, other):
+        if isinstance(other, Stone):
+            return self.position[0] < other.position[0] \
+                   or self.position[1] < other.position[1]
+        return False
 
     @property
     def position(self):
@@ -102,6 +115,18 @@ class Pattern(object):
     @property
     def number_of_stones(self):
         return len(self.stones)
+
+    @property
+    def end_stones(self):
+        # TODO: Test
+        max_stone = self.stones[0]
+        min_stone = self.stones[0]
+        for stone in self.stones:
+            if stone < min_stone:
+                min_stone = stone
+            elif max_stone < stone:
+                max_stone = stone
+        return min_stone, max_stone
 
 
 def _update_pattern_along_orientation(existing_stone, orientation, stone, patterns):

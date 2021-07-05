@@ -14,14 +14,14 @@ def _black_stone_reward_from_patterns(patterns, patterns_color):
 
 
 class GomokuEnv(gym.Env):
-    def __init__(self, board_size=15, opponent=None):
+    def __init__(self, board_size=15, opponent_class=None):
         self._board_size = board_size
         self._board = Board(board_size)
-        if opponent is None:
+        if opponent_class is None:
             # opponent uses white stone
             self.opponent = RandomAgent(self._board, StoneColor.white)
         else:
-            self.opponent = None
+            self.opponent = opponent_class(self._board, StoneColor.white)
 
         self.action_space = spaces.MultiDiscrete([board_size, board_size])
         self.observation_space = spaces.Box(-1, 1, (board_size, board_size), dtype=np.int8)

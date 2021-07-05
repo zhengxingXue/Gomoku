@@ -34,9 +34,12 @@ class Board(object):
         self._board_state[row][col] = self._current_stone_color.value
         self._board_stone[row][col] = current_stone
         self._board_patterns.add_stone(current_stone)
-        self._current_stone_color = self._current_stone_color.next()
+        have_five = self._board_patterns.five_stones_found
+        is_full = self._current_step >= self._board_size ** 2
+        if not(have_five or is_full):
+            self._current_stone_color = self._current_stone_color.next()
 
-        return self._board_patterns.five_stones_found, self._current_step >= self._board_size ** 2
+        return have_five, is_full
 
     def render(self, mode='human'):
         """
