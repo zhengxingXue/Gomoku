@@ -38,7 +38,7 @@ def draw_circle_alpha(surface, color, center, radius):
 
 
 class GomokuGUI(object):
-    USE_ENV = True
+    USE_ENV = False
 
     def __init__(self):
         if self.USE_ENV:
