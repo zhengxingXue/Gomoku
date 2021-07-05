@@ -76,3 +76,7 @@ class Board(object):
     @property
     def board_patterns(self):
         return self._board_patterns
+
+    @property
+    def current_stone_color(self):
+        return self._current_stone_color
