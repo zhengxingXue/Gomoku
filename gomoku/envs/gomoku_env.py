@@ -23,8 +23,9 @@ class GomokuEnv(gym.Env):
         else:
             self.opponent = opponent_class(self._board, StoneColor.white)
 
-        self.action_space = spaces.MultiDiscrete([board_size, board_size])
-        self.observation_space = spaces.Box(-1, 1, (board_size, board_size), dtype=np.int8)
+        self.action_space = spaces.Discrete(board_size ** 2)
+        # self.action_space = spaces.MultiDiscrete([board_size, board_size])
+        self.observation_space = spaces.Box(-1, 1, (board_size**2,), dtype=np.int8)
 
     def reset(self):
         self._board.reset()
@@ -45,9 +46,14 @@ class GomokuEnv(gym.Env):
         reward = 0
         info = {}
 
+        if isinstance(action, int) or isinstance(action, np.int64):
+            row = action // self._board_size
+            col = action % self._board_size
+            action = [row, col]
+        else:
+            row, col = action
         # punish invalid action, i.e. put stone on other stones
         # end env after such action
-        row, col = action
         if self._board.board_state[row][col] != 0:
             return self._get_obs(), -1000, True, info
 
