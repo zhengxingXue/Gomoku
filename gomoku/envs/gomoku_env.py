@@ -31,7 +31,7 @@ class GomokuEnv(gym.Env):
         return self._get_obs()
 
     def _get_obs(self):
-        return self._board.board_state
+        return self._board.board_state.flatten()
 
     def render(self, mode='human'):
         self._board.render(mode)
