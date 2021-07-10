@@ -30,52 +30,98 @@ class RandomAgent(Agent):
 
 
 class EasyAgent(Agent):
-    def __init__(self, board, stone_color):
+    def __init__(self, board, stone_color, randomness=False):
         Agent.__init__(self, board, stone_color)
+        self._available_positions = []
+        self._randomness = randomness
 
     def predict(self, obs=None):
+        self._update_available_position()
+        chosen_pos = random.choice(self._available_positions) if self._randomness \
+            else self._available_positions[0]
+        self._available_positions = []  # reset the available positions
+        return chosen_pos, None
+
+    def _update_available_position(self):
         if len(self.patterns) == 0:
             if len(self.opponent_patterns) == 0:
                 # No pattern, i.e. start of the game
                 # Place stone in middle
-                return [self._board.board_size // 2, self._board.board_size // 2], None
+                self._available_positions = [
+                    [self._board.board_size // 2, self._board.board_size // 2]
+                ]
             else:
-                available_positions = self._check_stone_surroundings(
+                # Only opponent stone, place stone around the opponent
+                self._available_positions = self._check_stone_surroundings(
                     self.opponent_patterns[0].stones[0],
                     Orientation.any
                 )
-                # TODO: change
-                chosen_position = available_positions[0]
-                return chosen_position, None
         else:
-            chosen_position = None
-            chosen_pattern_index = 0
-            # ATTACK, expand the existing pattern
-            while chosen_position is None and chosen_pattern_index < len(self.patterns):
-                chosen_pattern = self.patterns[chosen_pattern_index]
-                min_stone, max_stone = chosen_pattern.end_stones
-                for stone in [min_stone, max_stone]:
-                    available_positions = self._check_stone_surroundings(
-                        stone,
-                        chosen_pattern.orientation
-                    )
-                    if len(available_positions) != 0:
-                        chosen_position = available_positions[0]
-                        return chosen_position, None
-                # No available position around the end stones in the pattern
-                # check every stone in the longest pattern in any orientation
-                for stone in chosen_pattern.stones:
-                    available_positions = self._check_stone_surroundings(
-                        stone,
-                        Orientation.any
-                    )
-                    if len(available_positions) != 0:
-                        chosen_position = available_positions[0]
-                        return chosen_position, None
-                chosen_pattern_index += 1
-            # DEFENCE, block opponent
-            # TODO: Implement
-            return [-1, -1], None
+            if self._need_defence():
+                # DEFENCE
+                # as the pattern has more than 1 free end to need defence,
+                # the _available_positions should have at least one item
+                self._update_available_position_based_on_free_end(self.opponent_patterns[0])
+            else:
+                # ATTACK
+                pattern_index = 0
+                pattern_index_limit = len(self.patterns)
+                # go through the patterns and find available_positions in free end
+                while len(self._available_positions) == 0 and pattern_index < pattern_index_limit:
+                    current_pattern = self.patterns[pattern_index]
+                    if current_pattern.orientation == Orientation.any:
+                        self._available_positions = self._check_stone_surroundings(
+                            current_pattern.stones[0],
+                            Orientation.any
+                        )
+                    else:
+                        if current_pattern.free_end_number > 0:
+                            # has free end stone, use the free end
+                            self._update_available_position_based_on_free_end(current_pattern)
+                        else:
+                            # no free end stone, check next
+                            # TODO: Test, may not work
+                            pass
+                    pattern_index += 1
+
+                pattern_index = 0
+                # go through the patterns and find available_positions in any position of
+                # the stones in pattern
+                while len(self._available_positions) == 0 and pattern_index < pattern_index_limit:
+                    current_pattern = self.patterns[pattern_index]
+
+                    for stone in current_pattern.stones:
+                        self._available_positions = self._check_stone_surroundings(
+                            stone,
+                            Orientation.any
+                        )
+
+                    pattern_index += 1
+
+                # cannot find any available positions, get a random positions,
+                # should not happen (often)
+                if len(self._available_positions) == 0:
+                    temp_agent = RandomAgent(self.board, self.stone_color)
+                    pos, _ = temp_agent.predict()
+                    self._available_positions = [pos]
+
+    def _need_defence(self):
+        # if the agent longest pattern has 4 stones and free end, attack and win
+        if self.patterns[0].number_of_stones >= 4 and self.patterns[0].free_end_number > 0:
+            return False
+        # opponent longest pattern has more than 3 stones and has more than 1 free end
+        # or more than 4 stones and has more than 0 free end, need defence
+        opponent_longest_pattern = self.opponent_patterns[0]
+        opponent_ns = opponent_longest_pattern.number_of_stones
+        opponent_fe = opponent_longest_pattern.free_end_number
+        need_defence = (opponent_ns >= 4 and opponent_fe > 0) or (opponent_ns >= 3 and opponent_fe > 1)
+        return need_defence
+
+    def _update_available_position_based_on_free_end(self, pattern):
+        positions = pattern.end_stones_next_position(self._board)
+        for position in positions:
+            if position is not None:
+                self._available_positions += [position]
 
     def _check_stone_surroundings(self, stone, orientation):
         row, col = stone.position
@@ -97,17 +143,17 @@ class EasyAgent(Agent):
                 available_position.append((row + dr, col + dc))
         return available_position
 
-    # TODO: Copied code
-    def _position_exist(self, row, col):
-        return 0 <= row < self._board.board_size and 0 <= col < self._board.board_size
-
     def _check_empty_in_dr_dc(self, row, col, dr, dc):
         row += dr
         col += dc
-        if self._position_exist(row, col):
+        if self._board.position_exist(row, col):
             return self._board.board_state[row][col] == 0
         else:
             return False
+
+    @property
+    def available_position(self):
+        return self._available_positions
 
     @property
     def opponent_patterns(self):
