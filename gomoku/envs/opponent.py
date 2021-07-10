@@ -3,9 +3,10 @@ from gomoku.envs.boardUtils import StoneColor, Orientation
 
 
 class Agent(object):
-    def __init__(self, board, stone_color):
+    def __init__(self, board, stone_color, randomness=True):
         self._board = board
         self.stone_color = stone_color
+        self._randomness = randomness
 
     @property
     def board(self):
@@ -13,8 +14,8 @@ class Agent(object):
 
 
 class RandomAgent(Agent):
-    def __init__(self, board, stone_color):
-        Agent.__init__(self, board, stone_color)
+    def __init__(self, board, stone_color, randomness=True):
+        Agent.__init__(self, board, stone_color, randomness)
 
     def predict(self, obs=None):
         not_found = True
@@ -30,10 +31,9 @@ class RandomAgent(Agent):
 
 
 class EasyAgent(Agent):
-    def __init__(self, board, stone_color, randomness=False):
-        Agent.__init__(self, board, stone_color)
+    def __init__(self, board, stone_color, randomness=True):
+        Agent.__init__(self, board, stone_color, randomness)
         self._available_positions = []
-        self._randomness = randomness
 
     def predict(self, obs=None):
         self._update_available_position()
@@ -70,10 +70,11 @@ class EasyAgent(Agent):
                 while len(self._available_positions) == 0 and pattern_index < pattern_index_limit:
                     current_pattern = self.patterns[pattern_index]
                     if current_pattern.orientation == Orientation.any:
-                        self._available_positions = self._check_stone_surroundings(
-                            current_pattern.stones[0],
-                            Orientation.any
-                        )
+                        # self._available_positions = self._check_stone_surroundings(
+                        #     current_pattern.stones[0],
+                        #     Orientation.any
+                        # )
+                        pass
                     else:
                         if current_pattern.free_end_number > 0:
                             # has free end stone, use the free end
@@ -95,6 +96,8 @@ class EasyAgent(Agent):
                             stone,
                             Orientation.any
                         )
+                        if len(self._available_positions) > 0:
+                            break
 
                     pattern_index += 1
 
@@ -106,6 +109,8 @@ class EasyAgent(Agent):
                     self._available_positions = [pos]
 
     def _need_defence(self):
+        # TODO: cannot defend |X|X|_|X| pattern
+
         # if the agent longest pattern has 4 stones and free end, attack and win
         if self.patterns[0].number_of_stones >= 4 and self.patterns[0].free_end_number > 0:
             return False

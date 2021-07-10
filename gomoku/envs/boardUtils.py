@@ -282,8 +282,11 @@ class BoardPattern(object):
         if len(self._white_stone_patterns) == 0:
             return False
         else:
-            if self._black_stone_patterns[0].number_of_stones >= 5 \
-                    or self._white_stone_patterns[0].number_of_stones >= 5:
-                return True
-            else:
-                return False
+            # need to go through the patterns, as the five stone can be blocked
+            # in two side and got sorted to the last
+            for black_pattern, white_pattern in \
+                    zip(self._black_stone_patterns, self._white_stone_patterns):
+                if black_pattern.number_of_stones >= 5 \
+                        or white_pattern.number_of_stones >= 5:
+                    return True
+            return False

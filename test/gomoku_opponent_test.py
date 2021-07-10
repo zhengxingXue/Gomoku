@@ -20,7 +20,7 @@ def test_RandomAgent():
 
 def test_EasyAgent():
     env = GomokuEnv()
-    opponent = EasyAgent(env.board, StoneColor.white)
+    opponent = EasyAgent(env.board, StoneColor.white, randomness=False)
     env.opponent = opponent
     env.step([7, 7])
     env.step([7, 6])

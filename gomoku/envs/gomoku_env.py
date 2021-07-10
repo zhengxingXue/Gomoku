@@ -3,7 +3,7 @@ from gym import spaces
 import numpy as np
 from gomoku.envs.board import Board
 from gomoku.envs.boardUtils import StoneColor
-from gomoku.envs.opponent import RandomAgent
+from gomoku.envs.opponent import EasyAgent
 
 
 def _black_stone_reward_from_patterns(patterns, patterns_color):
@@ -14,12 +14,12 @@ def _black_stone_reward_from_patterns(patterns, patterns_color):
 
 
 class GomokuEnv(gym.Env):
-    def __init__(self, board_size=15, opponent_class=RandomAgent):
+    def __init__(self, board_size=15, opponent_class=EasyAgent, randomness=True):
         self._board_size = board_size
         self._board = Board(board_size)
 
         # opponent uses white stone
-        self.opponent = opponent_class(self._board, StoneColor.white)
+        self.opponent = opponent_class(self._board, StoneColor.white, randomness)
 
         self.action_space = spaces.Discrete(board_size ** 2)
         # self.action_space = spaces.MultiDiscrete([board_size, board_size])
