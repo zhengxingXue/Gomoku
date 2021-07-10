@@ -28,10 +28,10 @@ def boardPattern_check_patterns_length(board, b_l, w_l):
 
 
 def boardPattern_check_pattern_attr_stones(pattern, stone_array, stone_color):
-    for (s0, s1) in zip(pattern.stones, stone_array):
-        assert s0 == s1
-        assert pattern in s0.patterns
-        assert s0.color == stone_color
+    for stone in pattern.stones:
+        assert stone in stone_array
+        assert pattern in stone.patterns
+        assert stone.color == stone_color
 
 
 def boardPattern_check_pattern_attr(pattern, orientation, color, number_of_stones):

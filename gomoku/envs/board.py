@@ -60,6 +60,9 @@ class Board(object):
         else:
             pass
 
+    def position_exist(self, row, col):
+        return 0 <= row < self.board_size and 0 <= col < self.board_size
+
     @property
     def board_size(self):
         return self._board_size

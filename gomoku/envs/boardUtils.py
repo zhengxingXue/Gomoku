@@ -61,8 +61,7 @@ class Stone(object):
 
     def __lt__(self, other):
         if isinstance(other, Stone):
-            return self.position[0] < other.position[0] \
-                   or self.position[1] < other.position[1]
+            return (self.position[0], self.position[1]) < (other.position[0], other.position[1])
         return False
 
     @property
@@ -86,13 +85,54 @@ class Orientation(enum.Enum):
     right_diagonal = "right_diagonal"
 
 
+Orientation_dictionary = {
+    Orientation.horizontal: [[-1, 0], [1, 0]],
+    Orientation.vertical: [[0, -1], [0, 1]],
+    Orientation.left_diagonal: [[-1, 1], [1, -1]],
+    Orientation.right_diagonal: [[-1, -1], [1, 1]]
+}
+
+
+class StoneArray(list):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def append(self, val):
+        index = 0
+        for item in self:
+            if val < item:
+                break
+            index += 1
+        self.insert(index, val)
+
+
 class Pattern(object):
     def __init__(self, stone):
         self._color = stone.color
         self.orientation = Orientation.any
-        self.stones = [stone]
+        self.stones = StoneArray([stone])
+
+        self.min_stone_free = True
+        self.max_stone_free = True
 
         stone.patterns.append(self)
+
+    def end_stones_next_position(self, board):
+        min_stone, max_stone = self.end_stones
+        if self.orientation == Orientation.any:
+            return [None, None]
+        result = []
+        for stone, free, (dr, dc) in zip(
+                [min_stone, max_stone],
+                [self.min_stone_free, self.max_stone_free],
+                Orientation_dictionary[self.orientation]
+        ):
+            row, col = stone.position
+            if board.position_exist(row + dr, col + dc) and free:
+                result += [[row + dr, col + dc]]
+            else:
+                result += [None]
+        return result
 
     def __repr__(self):
         rep = "b " if self._color == StoneColor.black else "w "
@@ -102,11 +142,14 @@ class Pattern(object):
         for stone in self.stones:
             rep += str(stone.step) + " "
         rep = rep[:-1]
-        rep += "]"
+        rep += "] "
+        rep += str(self.min_stone_free) + " "
+        rep += str(self.max_stone_free)
         return rep
 
     def __lt__(self, other):
-        return self.number_of_stones < other.number_of_stones
+        return (self.free_end_number != 0, self.number_of_stones, self.free_end_number) < \
+               (other.free_end_number != 0, other.number_of_stones, other.free_end_number)
 
     @property
     def color(self):
@@ -118,15 +161,11 @@ class Pattern(object):
 
     @property
     def end_stones(self):
-        # TODO: Test
-        max_stone = self.stones[0]
-        min_stone = self.stones[0]
-        for stone in self.stones:
-            if stone < min_stone:
-                min_stone = stone
-            elif max_stone < stone:
-                max_stone = stone
-        return min_stone, max_stone
+        return self.stones[0], self.stones[-1]
+
+    @property
+    def free_end_number(self):
+        return int(self.max_stone_free) + int(self.min_stone_free)
 
 
 def _update_pattern_along_orientation(existing_stone, orientation, stone, patterns):
@@ -147,7 +186,21 @@ class BoardPattern(object):
         patterns = self._black_stone_patterns if stone.color == StoneColor.black else self._white_stone_patterns
         if not self._check_existing_patterns(stone):
             patterns.append(Pattern(stone))
+        self._update_patterns_end_free()
         self._sort_patterns()
+
+    def _update_patterns_end_free(self):
+        for pattern in self.white_stone_patterns + self.black_stone_patterns:
+            if pattern.orientation != Orientation.any:
+                min_stone_next_pos, max_stone_next_pos = pattern.end_stones_next_position(self._board)
+                pattern.min_stone_free = pattern.min_stone_free and min_stone_next_pos is not None
+                pattern.max_stone_free = pattern.max_stone_free and max_stone_next_pos is not None
+                if pattern.min_stone_free:
+                    min_row, min_col = min_stone_next_pos
+                    pattern.min_stone_free = self._board.board_state[min_row][min_col] == 0
+                if pattern.max_stone_free:
+                    max_row, max_col = max_stone_next_pos
+                    pattern.max_stone_free = self._board.board_state[max_row][max_col] == 0
 
     def _check_existing_patterns(self, stone):
         patterns = self._black_stone_patterns if stone.color == StoneColor.black else self._white_stone_patterns
@@ -194,13 +247,10 @@ class BoardPattern(object):
                 found = False
         return found
 
-    def _position_exist(self, row, col):
-        return 0 <= row < self._board.board_size and 0 <= col < self._board.board_size
-
     def _check_dr_dc(self, color, row, col, dr, dc):
         row += dr
         col += dc
-        if self._position_exist(row, col):
+        if self._board.position_exist(row, col):
             stone = self._board.board_stone[row][col]
             if stone != 0 and stone.color == color:
                 return True
@@ -212,6 +262,12 @@ class BoardPattern(object):
     def _sort_patterns(self):
         self._black_stone_patterns.sort(reverse=True)
         self._white_stone_patterns.sort(reverse=True)
+
+    def __repr__(self):
+        rep = repr(self.black_stone_patterns)
+        rep += "\n"
+        rep += repr(self.white_stone_patterns)
+        return rep
 
     @property
     def black_stone_patterns(self):
