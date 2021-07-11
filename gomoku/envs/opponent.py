@@ -81,7 +81,6 @@ class EasyAgent(Agent):
                             self._update_available_position_based_on_free_end(current_pattern)
                         else:
                             # no free end stone, check next
-                            # TODO: Test, may not work
                             pass
                     pattern_index += 1
 
@@ -91,13 +90,12 @@ class EasyAgent(Agent):
                 while len(self._available_positions) == 0 and pattern_index < pattern_index_limit:
                     current_pattern = self.patterns[pattern_index]
 
+                    # Can be optimized in advanced agent
                     for stone in current_pattern.stones:
-                        self._available_positions = self._check_stone_surroundings(
+                        self._available_positions += self._check_stone_surroundings(
                             stone,
                             Orientation.any
                         )
-                        if len(self._available_positions) > 0:
-                            break
 
                     pattern_index += 1
 

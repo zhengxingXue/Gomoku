@@ -26,3 +26,11 @@ def test_env_step():
     assert done is False
     assert info == {}
     # env.render()
+
+
+def test_env_BoardPositionAlreadyTaken():
+    env = GomokuEnv()
+    env.step([7, 7])
+    _, _, done, _ = env.step([7, 7])
+    assert done is True
+    env.render()

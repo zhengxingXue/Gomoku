@@ -1,7 +1,7 @@
 import gym
 from gym import spaces
 import numpy as np
-from gomoku.envs.board import Board
+from gomoku.envs.board import Board, BoardPositionAlreadyTaken
 from gomoku.envs.boardUtils import StoneColor
 from gomoku.envs.opponent import EasyAgent
 
@@ -14,7 +14,9 @@ def _black_stone_reward_from_patterns(patterns, patterns_color):
 
 
 class GomokuEnv(gym.Env):
-    def __init__(self, board_size=15, opponent_class=EasyAgent, randomness=True):
+    def __init__(self, board_size=15,
+                 opponent_class=EasyAgent,
+                 randomness=True):
         self._board_size = board_size
         self._board = Board(board_size)
 
@@ -50,13 +52,14 @@ class GomokuEnv(gym.Env):
             action = [row, col]
         else:
             row, col = action
-        # punish invalid action, i.e. put stone on other stones
-        # end env after such action
-        if self._board.board_state[row][col] != 0:
+
+        try:
+            have_five, is_full = self._board.step(action)
+        except BoardPositionAlreadyTaken:
+            # punish invalid action, i.e. put stone on other stones
+            # end env after such action
             return self._get_obs(), -1000, True, info
 
-        # TODO: validate the action
-        have_five, is_full = self._board.step(action)
         reward += 1000 if have_five else 0
 
         # reward actions that link the stones

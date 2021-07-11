@@ -3,6 +3,10 @@ import numpy as np
 from gomoku.envs.boardUtils import BoardPattern, Stone, StoneColor
 
 
+class BoardPositionAlreadyTaken(Exception):
+    pass
+
+
 class Board(object):
     def __init__(self, board_size=15):
         self._board_size = board_size
@@ -24,13 +28,15 @@ class Board(object):
         :param action: [row, column]
         :return: (have_five, is_full)
         """
-        # TODO: how to step if the board is full
-        position = action
+        row, col = action
+
+        if self._board_state[row][col] != 0:
+            raise BoardPositionAlreadyTaken
+
         self._current_step += 1
-        current_stone = Stone(position, self._current_stone_color, self._current_step)
+        current_stone = Stone(action, self._current_stone_color, self._current_step)
         self._stone_array.append(current_stone)
 
-        row, col = action
         self._board_state[row][col] = self._current_stone_color.value
         self._board_stone[row][col] = current_stone
         self._board_patterns.add_stone(current_stone)
