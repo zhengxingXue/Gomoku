@@ -121,7 +121,7 @@ class GomokuGUI(object):
         x, y = pygame.mouse.get_pos()
         edge_padding = PADDING - STONE_RADIUS
         if edge_padding <= x <= SCREEN_WIDTH - edge_padding and \
-                edge_padding + TOP_SPACING <= y <= BOARD_SIZE + PADDING * 2 - edge_padding:
+                edge_padding + TOP_SPACING <= y <= TOP_SPACING + BOARD_SIZE + PADDING * 2 - edge_padding:
             self._current_stone_pos = (x, y-TOP_SPACING)
         else:
             self._current_stone_pos = None
