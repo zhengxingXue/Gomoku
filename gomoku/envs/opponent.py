@@ -31,9 +31,10 @@ class RandomAgent(Agent):
 
 
 class EasyAgent(Agent):
-    def __init__(self, board, stone_color, randomness=True):
+    def __init__(self, board, stone_color, randomness=True, defend_opponent_four_probability=0.5):
         Agent.__init__(self, board, stone_color, randomness)
         self._available_positions = []
+        self._defend_opponent_four_probability = defend_opponent_four_probability
 
     def predict(self, obs=None):
         self._update_available_position()
@@ -116,7 +117,9 @@ class EasyAgent(Agent):
         opponent_longest_pattern = self.opponent_patterns[0]
         opponent_ns = opponent_longest_pattern.number_of_stones
         opponent_fe = opponent_longest_pattern.free_end_number
-        need_defence = (opponent_ns >= 4 and opponent_fe > 0) or (opponent_ns >= 3 and opponent_fe > 1)
+        defend_four = opponent_ns >= 4 and opponent_fe > 0 and random.random() < self._defend_opponent_four_probability
+        defend_three = opponent_ns >= 3 and opponent_fe > 1
+        need_defence = defend_four or defend_three
         return need_defence
 
     def _update_available_position_based_on_free_end(self, pattern):
