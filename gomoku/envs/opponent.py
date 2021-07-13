@@ -108,7 +108,6 @@ class EasyAgent(Agent):
 
     def _need_defence(self):
         # TODO: cannot defend |X|X|_|X| pattern
-
         # if the agent longest pattern has 4 stones and free end, attack and win
         if self.patterns[0].number_of_stones >= 4 and self.patterns[0].free_end_number > 0:
             return False
